@@ -3696,11 +3696,15 @@ class Exchange(object):
         if isinstance(ohlcv, list):
             return [
                 self.safe_integer(ohlcv, 0),  # timestamp
-                self.safe_number(ohlcv, 1),  # open
-                self.safe_number(ohlcv, 2),  # high
-                self.safe_number(ohlcv, 3),  # low
-                self.safe_number(ohlcv, 4),  # close
-                self.safe_number(ohlcv, 5),  # volume
+                self.safe_number(ohlcv, 1),   # open
+                self.safe_number(ohlcv, 2),   # high
+                self.safe_number(ohlcv, 3),   # low
+                self.safe_number(ohlcv, 4),   # close
+                self.safe_number(ohlcv, 5),   # volume
+                self.safe_number(ohlcv, 7),   # turnover
+                self.safe_number(ohlcv, 8),   # trade_counts
+                self.safe_number(ohlcv, 9),   # taker_volume
+                self.safe_number(ohlcv, 10),  # taker_turnover
             ]
         return ohlcv
 
