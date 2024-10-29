@@ -6,6 +6,25 @@ namespace ccxt;
 
 public partial class htx
 {
+    /// <summary>
+    /// the latest known information on the availability of the exchange API
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#get-system-status"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#query-whether-the-system-is-available"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchStatus(Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchStatus(parameters);
@@ -15,6 +34,8 @@ public partial class htx
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-timestamp"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-current-system-timestamp"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -34,6 +55,7 @@ public partial class htx
     /// fetch the trading fees for a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -54,6 +76,21 @@ public partial class htx
         var res = await this.fetchTradingLimits(symbols, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// undefined
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-current-fee-rate-applied-to-the-user"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> the limits object of a market structure.</returns>
     public async Task<Dictionary<string, object>> FetchTradingLimitsById(string id, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingLimitsById(id, parameters);
@@ -63,6 +100,10 @@ public partial class htx
     /// retrieves data on all markets for huobi
     /// </summary>
     /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -78,7 +119,37 @@ public partial class htx
         var res = await this.fetchMarkets(parameters);
         return ((IList<object>)res).Select(item => new MarketInterface(item)).ToList<MarketInterface>();
     }
-    public async Task<List<Dictionary<string, object>>> FetchMarketsByTypeAndSubType(object type, object subType, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// retrieves data on all markets of a certain type and/or subtype
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-supported-trading-symbol-v1-deprecated"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/dm/v1/en/#get-contract-info"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#query-swap-info"/>  <br/>
+    /// See <see href="https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-query-swap-info"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>type</term>
+    /// <description>
+    /// string : 'spot', 'swap' or 'future'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>subType</term>
+    /// <description>
+    /// string : 'linear' or 'inverse'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> an array of objects representing market data.</returns>
+    public async Task<List<Dictionary<string, object>>> FetchMarketsByTypeAndSubType(string type, string subType, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketsByTypeAndSubType(type, subType, parameters);
         return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
@@ -375,7 +446,28 @@ public partial class htx
         var res = await this.fetchAccounts(parameters);
         return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
-    public async Task<Dictionary<string, object>> FetchAccountIdByType(object type, object marginMode = null, object symbol = null, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch all the accounts by a type and marginModeassociated with a profile
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://huobiapi.github.io/docs/spot/v1/en/#get-all-accounts-of-the-current-user"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type.</returns>
+    public async Task<Dictionary<string, object>> FetchAccountIdByType(string type, string marginMode = null, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchAccountIdByType(type, marginMode, symbol, parameters);
         return ((Dictionary<string, object>)res);
@@ -795,7 +887,7 @@ public partial class htx
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.stopPrice</term>
+    /// <term>params.triggerPrice</term>
     /// <description>
     /// float : the price a trigger order is triggered at
     /// </description>

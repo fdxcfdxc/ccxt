@@ -1402,6 +1402,8 @@ export default class Exchange {
                 'fetchLeverages': undefined,
                 'fetchLeverageTiers': undefined,
                 'fetchLiquidations': undefined,
+                'fetchLongShortRatio': undefined,
+                'fetchLongShortRatioHistory': undefined,
                 'fetchMarginMode': undefined,
                 'fetchMarginModes': undefined,
                 'fetchMarketLeverageTiers': undefined,
@@ -2195,6 +2197,12 @@ export default class Exchange {
     async setMargin(symbol, amount, params = {}) {
         throw new NotSupported(this.id + ' setMargin() is not supported yet');
     }
+    async fetchLongShortRatio(symbol, timeframe = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchLongShortRatio() is not supported yet');
+    }
+    async fetchLongShortRatioHistory(symbol = undefined, timeframe = undefined, since = undefined, limit = undefined, params = {}) {
+        throw new NotSupported(this.id + ' fetchLongShortRatioHistory() is not supported yet');
+    }
     async fetchMarginAdjustmentHistory(symbol = undefined, type = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -2607,9 +2615,10 @@ export default class Exchange {
         const isTriggerOrSLTpOrder = ((this.safeString(order, 'triggerPrice') !== undefined || (this.safeString(order, 'stopLossPrice') !== undefined)) || (this.safeString(order, 'takeProfitPrice') !== undefined));
         if (parseFilled || parseCost || shouldParseFees) {
             const rawTrades = this.safeValue(order, 'trades', trades);
-            const oldNumber = this.number;
+            // const oldNumber = this.number;
             // we parse trades as strings here!
-            this.number = String;
+            // i don't think this is needed anymore
+            // (this as any).number = String;
             const firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
             const tradesAreParsed = ((firstTrade !== undefined) && ('info' in firstTrade) && ('id' in firstTrade));
@@ -2619,7 +2628,7 @@ export default class Exchange {
             else {
                 trades = rawTrades;
             }
-            this.number = oldNumber;
+            // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             let tradesLength = 0;
             const isArray = Array.isArray(trades);
             if (isArray) {
@@ -5507,6 +5516,19 @@ export default class Exchange {
         }
         return interests;
     }
+    parseBorrowRate(info, currency = undefined) {
+        throw new NotSupported(this.id + ' parseBorrowRate() is not supported yet');
+    }
+    parseBorrowRateHistory(response, code, since, limit) {
+        const result = [];
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const borrowRate = this.parseBorrowRate(item);
+            result.push(borrowRate);
+        }
+        const sorted = this.sortBy(result, 'timestamp');
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit);
+    }
     parseIsolatedBorrowRates(info) {
         const result = {};
         for (let i = 0; i < info.length; i++) {
@@ -5541,6 +5563,19 @@ export default class Exchange {
             result[parsed['symbol']] = parsed;
         }
         return result;
+    }
+    parseLongShortRatio(info, market = undefined) {
+        throw new NotSupported(this.id + ' parseLongShortRatio() is not supported yet');
+    }
+    parseLongShortRatioHistory(response, market = undefined, since = undefined, limit = undefined) {
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            rates.push(this.parseLongShortRatio(entry, market));
+        }
+        const sorted = this.sortBy(rates, 'timestamp');
+        const symbol = (market === undefined) ? undefined : market['symbol'];
+        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
     handleTriggerAndParams(params) {
         const isTrigger = this.safeBool2(params, 'trigger', 'stop');
@@ -6148,6 +6183,8 @@ export default class Exchange {
         let i = 0;
         let errors = 0;
         let result = [];
+        const timeframe = this.safeString(params, 'timeframe');
+        params = this.omit(params, 'timeframe'); // reading the timeframe from the method arguments to avoid changing the signature
         while (i < maxCalls) {
             try {
                 if (cursorValue !== undefined) {
@@ -6162,6 +6199,9 @@ export default class Exchange {
                 }
                 else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, params);
+                }
+                else if (method === 'fetchOpenInterestHistory') {
+                    response = await this[method](symbol, timeframe, since, maxEntriesPerRequest, params);
                 }
                 else {
                     response = await this[method](symbol, since, maxEntriesPerRequest, params);
